@@ -24,7 +24,7 @@ const {
   toBN,
 } = hre
 
-describe('Lending', () => {
+describe.only('Lending', () => {
   // Run tests for all markets
   getMarkets(network).forEach(testLP)
 
@@ -72,7 +72,7 @@ describe('Lending', () => {
 
             const depositAmount = await fundLender({
               token: lendingToken,
-              amount: 100,
+              amount: 1,
               hre,
             })
             await tToken
@@ -94,7 +94,7 @@ describe('Lending', () => {
             // Fund the lender
             const depositAmount = await fundLender({
               token: lendingToken,
-              amount: 1000,
+              amount: 1,
               hre,
             })
 
@@ -117,7 +117,7 @@ describe('Lending', () => {
               .withArgs(LENDING_ID, await deployer.getAddress())
           })
 
-          it('should NOT be able to deposit more than the max TVL setting', async () => {
+          it.skip('should NOT be able to deposit more than the max TVL setting', async () => {
             const maxTVL = await diamond.getAssetMaxTVL(lendingToken.address)
             const depositAmount = maxTVL.add(1)
 
@@ -155,9 +155,10 @@ describe('Lending', () => {
             // Fund the market
             const depositAmount = await fundLender({
               token: lendingToken,
-              amount: 1000,
+              amount: 1,
               hre,
             })
+
             await helpers.deposit(lender, depositAmount)
 
             const tTokenBalAfter = await tToken.balanceOf(
@@ -173,15 +174,15 @@ describe('Lending', () => {
         })
       })
 
-      describe('TToken', () => {
+      describe.only('TToken', () => {
         let depositAmount1: BigNumber
         let depositAmount2: BigNumber
 
         before(async () => {
           // Get a fresh market
-          // await deployments.fixture('markets', {
-          //   keepExistingDeployments: RUN_EXISTING,
-          // })
+          await deployments.fixture('markets', {
+            keepExistingDeployments: RUN_EXISTING,
+          })
 
           // Turn off the Teller Token restriction
           await tToken.connect(deployer).restrict(false)
@@ -189,7 +190,7 @@ describe('Lending', () => {
           // Fund the lender
           depositAmount1 = await fundLender({
             token: lendingToken,
-            amount: 1000,
+            amount: 1,
             hre,
           })
 
@@ -264,7 +265,7 @@ describe('Lending', () => {
 
         it('mint, rebalance - should be able to add an additional lender', async () => {
           // Fund the lender
-          depositAmount2 = toBN(10000, await lendingToken.decimals())
+          depositAmount2 = toBN(1, await lendingToken.decimals())
           await getFunds({
             to: await lender2.getAddress(),
             tokenSym: market.lendingToken,

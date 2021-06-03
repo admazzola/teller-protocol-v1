@@ -5,7 +5,7 @@ import hre from 'hardhat'
 import { getMarkets } from '../../../../config'
 import { getPlatformSetting } from '../../../../tasks'
 import { Market } from '../../../../types/custom/config-types'
-import { ERC20, ICErc20, ITellerDiamond } from '../../../../types/typechain'
+import { ERC20, IAToken, ITellerDiamond } from '../../../../types/typechain'
 import { fundedMarket } from '../../../fixtures'
 import { LoanType, takeOut } from '../../../helpers/loans'
 
@@ -14,14 +14,14 @@ chai.use(solidity)
 
 const { getNamedSigner, contracts, evm } = hre
 
-describe.skip('CompoundDapp', () => {
-  getMarkets(hre.network).forEach(testCompound)
+describe('AaveDapp', () => {
+  getMarkets(hre.network).forEach(testAave)
 
-  function testCompound(market: Market): void {
+  function testAave(market: Market): void {
     describe(`${market.lendingToken} lending token`, () => {
       let diamond: ITellerDiamond
       let lendingToken: ERC20
-      let cToken: ICErc20
+      let aToken: IAToken
 
       before(async () => {
         ;({ diamond, lendingToken } = await fundedMarket({
@@ -29,8 +29,8 @@ describe.skip('CompoundDapp', () => {
           amount: 100000,
         }))
 
-        cToken = await contracts.get<ICErc20>('ICErc20', {
-          at: await diamond.getAssetCToken(lendingToken.address),
+        aToken = await contracts.get<IAToken>('IAToken', {
+          at: await diamond.getAssetAToken(lendingToken.address),
         })
       })
 
@@ -44,7 +44,7 @@ describe.skip('CompoundDapp', () => {
       })
 
       describe('lend, redeemAll', () => {
-        it('Should be able to lend and then redeem successfully from Compound', async () => {
+        it('Should be able to lend and then redeem successfully from Aave', async () => {
           const { details } = await takeOut({
             lendToken: market.lendingToken,
             collToken: market.collateralTokens[0],
@@ -53,7 +53,7 @@ describe.skip('CompoundDapp', () => {
 
           await diamond
             .connect(details.borrower.signer)
-            .compoundLend(
+            .aaveDeposit(
               details.loan.id,
               details.loan.lendingToken,
               details.loan.borrowedAmount
@@ -61,26 +61,26 @@ describe.skip('CompoundDapp', () => {
 
           const escrowAddress = await diamond.getLoanEscrow(details.loan.id)
 
-          let cDaiBalance = await cToken.balanceOf(escrowAddress)
+          let aDaiBalance = await aToken.balanceOf(escrowAddress)
 
-          cDaiBalance.eq(0).should.eql(false, '')
+          aDaiBalance.eq(0).should.eql(false, '')
 
           let tokenAddresses: string[]
           tokenAddresses = await diamond.getEscrowTokens(details.loan.id)
-          tokenAddresses.should.include(cToken.address)
+          tokenAddresses.should.include(aToken.address)
 
           await diamond
             .connect(details.borrower.signer)
-            .compoundRedeemAll(details.loan.id, lendingToken.address)
+            .aaveWithdrawAll(details.loan.id, lendingToken.address)
 
           tokenAddresses = await diamond.getEscrowTokens(details.loan.id)
-          tokenAddresses.should.not.include(cToken.address)
+          tokenAddresses.should.not.include(aToken.address)
 
-          cDaiBalance = await cToken.balanceOf(escrowAddress)
-          cDaiBalance.eq(0).should.eql(true, '')
+          aDaiBalance = await aToken.balanceOf(escrowAddress)
+          aDaiBalance.eq(0).should.eql(true, '')
         })
 
-        it('Should not be able to lend into Compound as not the loan borrower', async () => {
+        it('Should not be able to lend into Aave as not the loan borrower', async () => {
           const { details } = await takeOut({
             lendToken: market.lendingToken,
             collToken: market.collateralTokens[0],
@@ -90,7 +90,7 @@ describe.skip('CompoundDapp', () => {
           const rando = await getNamedSigner('lender')
           await diamond
             .connect(rando)
-            .compoundLend(
+            .aaveDeposit(
               details.loan.id,
               details.loan.lendingToken,
               details.loan.borrowedAmount

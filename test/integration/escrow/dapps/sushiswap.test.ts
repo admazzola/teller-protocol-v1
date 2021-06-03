@@ -14,14 +14,14 @@ chai.use(solidity)
 
 const { tokens, getNamedSigner, evm } = hre
 
-describe.skip('UniswapDapp', () => {
+describe('SushiswapDapp', () => {
   let diamond: ITellerDiamond
   let lendingToken: ERC20
   let link: ERC20
 
-  getMarkets(hre.network).forEach(testUniswap)
+  getMarkets(hre.network).forEach(testSushiswap)
 
-  function testUniswap(market: Market): void {
+  function testSushiswap(market: Market): void {
     describe(`${market.lendingToken} lending token`, () => {
       before(async () => {
         ;({ diamond, lendingToken } = await fundedMarket({
@@ -42,7 +42,7 @@ describe.skip('UniswapDapp', () => {
       })
 
       describe('swap', () => {
-        it('Should be able to swap using Uniswap', async () => {
+        it('Should be able to swap using Sushiswap', async () => {
           const { details } = await takeOut({
             lendToken: market.lendingToken,
             collToken: market.collateralTokens[0],
@@ -72,7 +72,7 @@ describe.skip('UniswapDapp', () => {
               lendingBalBefore,
               '0'
             )
-            .should.emit(diamond, 'UniswapSwapped')
+            .should.emit(diamond, 'SushiswapSwapped')
 
           const swapBalAfter = await link.balanceOf(escrowAddress)
           swapBalAfter
@@ -88,7 +88,7 @@ describe.skip('UniswapDapp', () => {
             )
         })
 
-        it('Should NOT be able to swap using Uniswap as not the loan borrower', async () => {
+        it('Should NOT be able to swap using Sushiswap as not the loan borrower', async () => {
           const { details } = await takeOut({
             lendToken: market.lendingToken,
             collToken: market.collateralTokens[0],
@@ -98,7 +98,7 @@ describe.skip('UniswapDapp', () => {
 
           await diamond
             .connect(await getNamedSigner('deployer'))
-            .uniswapSwap(
+            .sushiswapSwap(
               details.loan.id,
               [lendingToken.address, link.address],
               details.loan.borrowedAmount,
@@ -107,7 +107,7 @@ describe.skip('UniswapDapp', () => {
             .should.rejectedWith('Teller: dapp not loan borrower')
         })
 
-        it('Should NOT be able to swap using Uniswap with an unsecured loan', async () => {
+        it('Should NOT be able to swap using Sushiswap with an unsecured loan', async () => {
           const { details } = await takeOut({
             lendToken: market.lendingToken,
             collToken: market.collateralTokens[0],
@@ -117,7 +117,7 @@ describe.skip('UniswapDapp', () => {
 
           await diamond
             .connect(details.borrower.signer)
-            .uniswapSwap(
+            .sushiswapSwap(
               details.loan.id,
               [lendingToken.address, link.address],
               details.loan.borrowedAmount,
