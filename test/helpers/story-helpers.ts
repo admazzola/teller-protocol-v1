@@ -51,6 +51,30 @@ interface TestArgs {
   loanArgs?: LoanArgs
 }
 
+//these can be manually or procedurally generated
+//perhaps better as a linked list    -> integrate hardhast shapshots   hre.evm.snapshot
+
+//if you load up teller diamond in ethers, you get the contract with all functions in the instance
+//load up all the available functions to call on the diamond
+
+const testScenarios = [
+  {
+    domain: 'LOAN',
+    actions: [
+      { actionName: 'CREATE', args: {}, expect: 'PASS' },
+      { actionName: 'LIQUIDATE', args: {}, expect: 'FAIL' },
+    ],
+  },
+
+  {
+    domain: 'LOAN',
+    actions: [
+      { actionName: 'CREATE', args: {}, expect: 'PASS' },
+      { actionName: 'TAKE_OUT', args: {}, expect: 'PASS' },
+    ],
+  },
+]
+
 const STORY_TREE: { [id: number]: number } = {
   0: -1,
   1: 0,
