@@ -33,6 +33,7 @@ export const forkNetwork: ActionType<NetworkArgs> = async (
   }
 
   if (!('forking' in network.config) || network.config.forking == null) {
+    console.log(' network.config', network.config)
     throw new Error(`Invalid forking config for network: ${chain}`)
   }
 

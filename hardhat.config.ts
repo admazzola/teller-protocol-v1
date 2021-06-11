@@ -80,6 +80,16 @@ const networkConfig = (config: NetworkUserConfig): NetworkUserConfig => {
   return config
 }
 
+extendEnvironment((hre) => {
+  hre.hi = 'Hello, Hardhat!'
+})
+
+task('envtest', (args, hre) => {
+  console.log(hre.hi)
+})
+
+module.exports = {}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 export default <HardhatUserConfig>{
   etherscan: {
